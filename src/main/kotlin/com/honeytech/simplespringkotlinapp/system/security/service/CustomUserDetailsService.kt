@@ -13,11 +13,10 @@ import org.springframework.stereotype.Component
 import java.util.stream.Collectors
 import javax.management.relation.RoleNotFoundException
 
+@Component("customUserDetailsService")
 class CustomUserDetailsService : UserDetailsService {
     @Autowired
     private lateinit var dao : UserDao
-
-
 
     @Throws(UsernameNotFoundException::class)
     override fun loadUserByUsername(username : String) : UserDetails {

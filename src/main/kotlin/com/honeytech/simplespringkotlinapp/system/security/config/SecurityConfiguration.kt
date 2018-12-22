@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
@@ -18,8 +19,10 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
 
 
 @Configuration
@@ -29,7 +32,7 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
 
     @Autowired
     @Qualifier("restAuthenticationEntryPoint")
-    lateinit var restAuthenticationEntryPoint : AuthenticationEntryPoint
+    lateinit var restAuthenticationEntryPoint: AuthenticationEntryPoint
 
     @Autowired
     @Qualifier("customSuccessHandler")
@@ -37,7 +40,11 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
 
     @Autowired
     @Qualifier("customUserDetailsService")
-    lateinit var userDetailsService : CustomUserDetailsService
+    lateinit var userDetailsService: CustomUserDetailsService
+
+    @Autowired
+    @Qualifier("customPasswordEncoder")
+    lateinit var encoder: CustomPasswordEncoder
 
     private val failureHandler = SimpleUrlAuthenticationFailureHandler()
 
@@ -57,39 +64,40 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
     fun authenticationProvider(): DaoAuthenticationProvider {
         val authProvider = DaoAuthenticationProvider()
         authProvider.setUserDetailsService(userDetailsService)
-        authProvider.setPasswordEncoder(encoder())
+        authProvider.setPasswordEncoder(encoder.encoder)
         return authProvider
     }
 
     @Bean
-    fun encoder(): PasswordEncoder {
-        return NoOpPasswordEncoder.getInstance()
-    }
+    fun noOpEncoder(): PasswordEncoder = NoOpPasswordEncoder.getInstance()
 
+    @Bean
+    fun cryptPasswordEncoder() : PasswordEncoder = BCryptPasswordEncoder()
 
     @Throws(Exception::class)
     override fun configure(http: HttpSecurity) {
         http
-                .sessionManagement()
+            .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .and()
-                .csrf()
-                .disable()
-                .exceptionHandling()
+            .and()
+            .csrf().disable()
+            .exceptionHandling()
                 .authenticationEntryPoint(restAuthenticationEntryPoint)
-                .and()
-                .authorizeRequests()
+            .and()
+            .authorizeRequests()
                 .antMatchers("/api/login").permitAll()
-                .antMatchers("/api/greeting").authenticated()
                 .antMatchers("/api/admin/**").hasRole(UserRole.ADMIN.toString())
-                .and()
-                .formLogin()
+                .anyRequest().authenticated()
+            .and()
+            .formLogin()
                 .successHandler(successHandler)
                 .failureHandler(failureHandler)
-                .and()
-                .httpBasic()
-                .and()
-                .logout()
+            .and()
+            .httpBasic()
+            .and()
+            .logout()
+                .logoutUrl("/api/logout").permitAll()
+                .logoutSuccessHandler(HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
     }
 }
 

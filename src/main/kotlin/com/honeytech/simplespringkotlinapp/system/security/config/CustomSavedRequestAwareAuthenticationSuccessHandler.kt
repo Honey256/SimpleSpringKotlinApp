@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
 import javax.servlet.http.HttpServletRequest
 
+@Component("customSuccessHandler")
 class CustomSavedRequestAwareAuthenticationSuccessHandler : SimpleUrlAuthenticationSuccessHandler() {
 
     private var requestCache: RequestCache = HttpSessionRequestCache()

@@ -1,8 +1,5 @@
 package com.honeytech.simplespringkotlinapp
 
-import com.honeytech.simplespringkotlinapp.controller.MyTestBean
-import com.honeytech.simplespringkotlinapp.controller.MyTestBean2
-import com.honeytech.simplespringkotlinapp.controller.MyTestBean3
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.ApplicationContext

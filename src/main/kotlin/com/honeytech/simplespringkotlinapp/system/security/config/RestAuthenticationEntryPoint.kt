@@ -7,6 +7,7 @@ import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.stereotype.Component
 import javax.servlet.http.HttpServletRequest
 
+@Component("restAuthenticationEntryPoint")
 class RestAuthenticationEntryPoint : AuthenticationEntryPoint {
 
     @Throws(IOException::class)
@@ -15,6 +16,6 @@ class RestAuthenticationEntryPoint : AuthenticationEntryPoint {
             response: HttpServletResponse,
             authException: AuthenticationException) {
 
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized1")
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Не авторизован")
     }
 }
